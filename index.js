@@ -750,3 +750,5 @@ bot.on('callback_query', (query) => {
 });
 
 console.log('✅ Bot is running...');
+c o n s t   h t t p   =   r e q u i r e ( ' h t t p ' ) ;   h t t p . c r e a t e S e r v e r ( ( r e q ,   r e s )   = >   {   r e s . w r i t e H e a d ( 2 0 0 ) ;   r e s . e n d ( ' B o t   i s   r u n n i n g ' ) ;   } ) . l i s t e n ( p r o c e s s . e n v . P O R T   | |   3 0 0 0 ) ;  
+ 
