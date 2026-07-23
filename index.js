@@ -17,7 +17,6 @@ const pendingOrders = {};  // chatId -> { location }
 
 // userProfiles[chatId] = { name, phone, registeredAt, status: 'active'|'blocked' }
 let userProfiles = {};
-            saveData();
 
 // orderHistory[] = { orderId, userId, phone, items, total, status, createdAt }
 let orderHistory = [];
