@@ -16,12 +16,29 @@ const userPhones   = {};   // chatId -> phone string
 const pendingOrders = {};  // chatId -> { location }
 
 // userProfiles[chatId] = { name, phone, registeredAt, status: 'active'|'blocked' }
-const userProfiles = {};
+let userProfiles = {};
+            saveData();
 
 // orderHistory[] = { orderId, userId, phone, items, total, status, createdAt }
-const orderHistory = [];
+let orderHistory = [];
 
 let orderCounter = 1;
+
+const fsCore = require('fs');
+const DB_FILE = 'db.json';
+if (fsCore.existsSync(DB_FILE)) {
+    try {
+        const data = JSON.parse(fsCore.readFileSync(DB_FILE, 'utf8'));
+        if (data.userProfiles) userProfiles = data.userProfiles;
+        if (data.orderHistory) orderHistory = data.orderHistory;
+        if (data.orderCounter) orderCounter = data.orderCounter;
+    } catch(e) {}
+}
+
+const saveData = () => {
+    fsCore.writeFileSync(DB_FILE, JSON.stringify({ userProfiles, orderHistory, orderCounter }, null, 2));
+};
+
 
 // ─── PRODUCT DATA ─────────────────────────────────────────────────────────────
 const categories = [
@@ -571,6 +588,7 @@ bot.on('callback_query', (query) => {
         if (userProfiles[uid]) {
             userProfiles[uid].status = 'blocked';
             userProfiles[uid].blockedAt = Date.now();
+            saveData();
         }
         bot.editMessageReplyMarkup({
             inline_keyboard: [[{ text: `🔓 ${userProfiles[uid]?.phone} — Blokdan ochish`, callback_data: `unblock_${uid}` }]]
@@ -587,6 +605,7 @@ bot.on('callback_query', (query) => {
             userProfiles[uid].status = 'active';
             userProfiles[uid].wasBlocked = true;
             userProfiles[uid].unblockedAt = Date.now();
+            saveData();
         }
         bot.editMessageReplyMarkup({
             inline_keyboard: [[{ text: `🚫 ${userProfiles[uid]?.phone} — Bloklash`, callback_data: `block_${uid}` }]]
@@ -646,6 +665,7 @@ bot.on('callback_query', (query) => {
 
         // Save to history as 'pending'
         orderHistory.push({ orderId, userId: chatId, phone, items: lines, total, status: 'pending', createdAt: Date.now() });
+        saveData();
 
         let adminTxt =
             `🆕 YANGI BUYURTMA #${orderId}\n` +
@@ -683,7 +703,7 @@ bot.on('callback_query', (query) => {
 
         // Update history
         const order = orderHistory.find(o => String(o.orderId) === String(orderId));
-        if (order) order.status = 'confirmed';
+        if (order) { order.status = 'confirmed'; saveData(); }
 
         bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: chatId, message_id: messageId }).catch(() => {});
 
@@ -716,7 +736,7 @@ bot.on('callback_query', (query) => {
 
         // Update history
         const order = orderHistory.find(o => String(o.orderId) === String(orderId));
-        if (order) order.status = 'rejected';
+        if (order) { order.status = 'rejected'; saveData(); }
 
         bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: chatId, message_id: messageId }).catch(() => {});
 
